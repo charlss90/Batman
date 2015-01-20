@@ -1,0 +1,20 @@
+{
+  "name": "Batman",
+  "version": "0.0.0",
+  "description": "Engine for API REST",
+  "main": "server.js",
+  "scripts": {
+    "test": "grunt test"
+  },
+  "author": "Carlos Eduardo Pazmiño Peralta",
+  "license": "MIT",
+  "devDependencies": {
+    "hapi": "^8.1.0"
+  },
+  "dependencies": {
+    "bcrypt": "^0.8.0",
+    "good": "^5.1.1",
+    "good-console": "^4.1.0",
+    "hapi-auth-basic": "^2.0.0"
+  }
+}
