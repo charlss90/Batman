@@ -17,8 +17,10 @@ var config = {
 
 
 var server = new Hapi.Server(config);
-server.connection({ port: port });
-
+server.connection({
+    port: port, 
+    host: "0.0.0.0"
+});
 
 server.register([
     {
