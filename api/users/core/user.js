@@ -1,75 +1,110 @@
 var Class = require("../../core/class");
+var Q = require("q");
+var uuid = require("node-uuid");
 var mongoose = require("mongoose");
 var Bcrypt = require("bcrypt");
 
-mongoose.connection.on('connected', function () {
- console.log('Mongoose connected to ' + dbURI);
-});
-mongoose.connection.on('error',function (err) {
- console.log('Mongoose connection error: ' + err);
-});
-mongoose.connection.on('disconnected', function () {
- console.log('Mongoose disconnected');
-});
+var cyphrePassword = function (password) {
+    var deferred = Q.defer();
 
+    Bcrypt.genSalt(10, function(err, salt) {
+        Bcrypt.hash(password, salt, function (err, hashPassword) {
+            if (err)
+                deferred.reject(err);
+            else {
+                deferred.resolve(hashPassword);
+            }
+        });
+    });
+    
 
+    return deferred.promise;
+};
 
 module.exports = Class.extend({
     nameCollection: "User",
-    urlDataBase: null,
-    getConnection: function ()  {
-        return (this.urlDataBase) ? mongoose.createConnection(this.urlDataBase) : null;
-    },
+    openSessions: 5,
 
     userSchema: new mongoose.Schema({
-        name: String,
+        name: {type:String},
         lastname: String,
-        username: String,
+        username: {type: String, unique: true, lowercase: true},
         password: String,
         email: String,
         createdOn: { type: Date, default: Date.now },
         modifyOn: { type: Date, default: Date.now },
-        lastLogin: Date
+        lastLogin: Date,
+        tokens: [
+            {value:String, date: Date}
+        ]
     }),
 
     register: function (user, callback) {
+        var deferred = Q.defer();
+        var self = this;
 
-        mongoose.connect(this.urlDataBase);
-        var newUser = new this.User(user);
-        newUser.save(function (err) {
-            if (err) {
-                console.log(err);
-            } else {
-                console.log("Success");
-            }
-            callback(err);
+        cyphrePassword(user.password)
+        .then(function (password) {
+            user.password = password;
+            var newUser = new self.User(user);
+            newUser.save(function (err, doc) {
+                if (err)
+                    deferred.reject(err);
+                else
+                    deferred.resolve(doc);
+            });
+        }).fail(function(err) {
+            deferred.reject(err);
         });
 
-        // this.userModel.create(user, function (err, _user) {
-        //     var isRegister = false;
-        //     if(!err) {
-        //         console.log("Register Success");
-        //         console.log(JSON.stringify(_user));
-        //         isRegister = true;
-        //         callback();
-        //     }
-        //     console.log(err);
-        //     callback(err);
-        // });
+        //deferred.promise.notify(callback);
+        return deferred.promise; 
+    },
 
+    removeAll: function (callback) {
+        return this.User.remove(callback);
     },
 
     find: function (user, callback) {
-        this.User.find(user, function (err, doc) {
-            console.log(err);
-            console.log(doc);
-            callback(err, doc);
-        });
+        this.User.find(user, callback);
     },
             
+    login: function (username, password) {
+        var self = this;
+        var deferred = Q.defer();
+        self.User.findOne({username: username}, function (err, user) {
+            if (!err) {
+                if (user) {
+                    Bcrypt.compare(password, user.password, function (err, isValid) {
+                        if (isValid) {
+                            var token = uuid.v1();
+                            if (user.tokens.length > self.openSessions)
+                                user.tokens.splice(user.tokens.length-1, 1);
+                            
+                            user.tokens.push(token);
+                            user.update(function (err) {
+                                if (err)
+                                    deferred.reject(err);
+                                deferred.resolve(token);
+                            });
+                        } else {
+                            deferred.reject(err);
+                        }
 
-    init: function (urlDataBase) {
-        this.urlDataBase = urlDataBase;
+                    });
+                } else {
+                    deferred.reject({message: "User doesn't exist's"});
+                }
+                    
+            } else {
+                deferred.reject(err);
+            }
+
+        });
+
+        return deferred.promise;
+    },
+    init: function () {
         this.User = mongoose.model(this.nameCollection, this.userSchema);
     }
 });
