@@ -6,7 +6,6 @@ var Bcrypt = require("bcrypt");
 
 var cyphrePassword = function (password) {
     var deferred = Q.defer();
-
     Bcrypt.genSalt(10, function(err, salt) {
         Bcrypt.hash(password, salt, function (err, hashPassword) {
             if (err)
@@ -26,11 +25,11 @@ module.exports = Class.extend({
     openSessions: 5,
 
     userSchema: new mongoose.Schema({
-        name: {type:String},
-        lastname: String,
+        name: {type:String, required: true},
+        lastname: {type:String, required: true},
         username: {type: String, unique: true, lowercase: true},
-        password: String,
-        email: String,
+        password: {type:String, required: true},
+        email: {type:String, required:true},
         createdOn: { type: Date, default: Date.now },
         modifyOn: { type: Date, default: Date.now },
         lastLogin: Date,
@@ -39,7 +38,7 @@ module.exports = Class.extend({
         ]
     }),
 
-    register: function (user, callback) {
+    register: function (user) {
         var deferred = Q.defer();
         var self = this;
 
@@ -81,14 +80,14 @@ module.exports = Class.extend({
                             if (user.tokens.length > self.openSessions)
                                 user.tokens.splice(user.tokens.length-1, 1);
                             
-                            user.tokens.push(token);
+                            user.tokens.push({token: token, date: new Date().getTime()});
                             user.update(function (err) {
                                 if (err)
                                     deferred.reject(err);
                                 deferred.resolve(token);
                             });
                         } else {
-                            deferred.reject(err);
+                            deferred.reject({message: "User and password incorrect"});
                         }
 
                     });

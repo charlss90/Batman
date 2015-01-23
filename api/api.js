@@ -23,7 +23,6 @@ var validate = function (username, password, callback) {
         return callback(null, false);
     }
 
-    console.log(password);
     Bcrypt.compare(password, user.password, function (err, isValid) {
         callback(err, isValid, { id: user.id, name: user.name });
     });

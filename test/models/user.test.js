@@ -1,6 +1,7 @@
 "use strict";
 var expect = require("chai").expect;
 var should = require("chai").should;
+var assert = require("chai").assert;
 var mongoose = require("mongoose");
 var Bcrypt = require("bcrypt");
 var User = require("../../api/users/core/user");
@@ -8,9 +9,10 @@ var User = require("../../api/users/core/user");
 var dbURI ='mongodb://localhost/test';
 mongoose.connect(dbURI);
 
+var timeout = 15000;
+
 
 describe("User test mode", function () {
-
     var name = "Carlos";
     var lastname = "Pazmiño Peralta";
     var username = "charlss90";
@@ -18,15 +20,13 @@ describe("User test mode", function () {
     var email = "carlos.pazmino.developer@gmail.com";
 
     var newUser = {
+        name: name,
         username: username,
         lastname: lastname,
         password: password,
         email: email
     };
     var user;
-
-//    before(function(done) {
-  //  });
 
     
     it("Register and create user", function (done) {
@@ -35,11 +35,26 @@ describe("User test mode", function () {
             if(err) {
                 done();
             } else {
-                user.register(newUser).then(function (doc) {
-                    should.exist(doc);
-                    done();
+                user.register(newUser).then(function (_user) {
+                    try {
+                        assert.equal(_user.name, name);
+                        assert.equal(_user.lastname, lastname);
+                        assert.equal(_user.username, username);
+                        assert.equal(_user.email, email);
+                    } catch (ex) {
+                        throw ex;
+                    } finally {
+                        done();
+                    }
+
                 }).fail(function(err) {
-                    should.exist(err);
+                    try {
+                        assert.notOk(true, "Error controlador");
+                    } catch (ex) {
+                        throw ex;
+                    } finally {
+                        done();
+                    }
                 });
             }
         });
@@ -48,13 +63,50 @@ describe("User test mode", function () {
     it("Login user", function (done) {
         var user = new User();
         user.login(username, password).then(function (token) {
-            should.exist(token);
-            done();
-        }).fail(function (err){
-            should.exist(err);
-            done();
+            try {
+                assert.isNotNull(token, "This not exist token");
+            } catch(ex) {
+                throw ex;
+                //console.log("Error: "+ex.message);
+            } finally {
+                done();
+            } 
+        }).fail(function (err) {
+            try {
+                console.log(err);
+                assert.isNull(err, "Trigger error when it doesn't exists");
+            } catch(ex) {
+                throw ex;
+            } finally {
+                done();
+            }
         });
     });
+
+    it("Login password doesn't maching", function(done) {
+        var user = new User();
+        user.login(username, "password").then(function (token) {
+            try {
+                throw new Error("Password doesn't matching, but login function");
+            } catch(ex) {
+                throw ex;
+            } finally {
+                done();
+            } 
+        }).fail(function (err) {
+            try {
+                var message = "User and password incorrect";
+                assert.equal(err.message, message, "Incorrect error");
+            } catch(ex) {
+                throw ex;
+            } finally {
+                done();
+            }
+        });
+    });
+
+
+    
 
 });
 
