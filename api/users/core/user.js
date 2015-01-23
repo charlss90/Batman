@@ -1,5 +1,7 @@
 var Class = require("../../core/class");
 
+
+
 module.exports = Class.extend({
 
   name: "",
