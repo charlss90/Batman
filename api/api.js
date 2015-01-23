@@ -1,4 +1,4 @@
-Bcrypt = require("bcrypt");
+var Bcrypt = require("bcrypt");
 
 var users = {
     john: {

@@ -1,4 +1,5 @@
 exports.register = function (plugin, options, next) {
+    var dataBase = options.dataBase;
     plugin.route({
         method: "GET",
         path: "users",
