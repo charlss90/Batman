@@ -79,9 +79,10 @@ module.exports = Class.extend({
                             var token = uuid.v1();
                             if (user.tokens.length > self.openSessions)
                                 user.tokens.splice(user.tokens.length-1, 1);
-                            
-                            user.tokens.push({token: token, date: new Date().getTime()});
-                            user.update(function (err) {
+                            var timestamp = new Date().getTime();
+                            user.lastLogin = timestamp;
+                            user.tokens.push({token: token, date: timestamp});
+                            user.save(function (err) {
                                 if (err)
                                     deferred.reject(err);
                                 deferred.resolve(token);
@@ -89,7 +90,6 @@ module.exports = Class.extend({
                         } else {
                             deferred.reject({message: "User and password incorrect"});
                         }
-
                     });
                 } else {
                     deferred.reject({message: "User doesn't exist's"});
