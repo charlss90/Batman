@@ -1,99 +1,112 @@
 "use strict";
 var expect = require("chai").expect;
+var should = require("chai").should;
+var assert = require("chai").assert;
 var mongoose = require("mongoose");
 var Bcrypt = require("bcrypt");
-// var User = require("../../api/users/core/user");
+var User = require("../../api/users/core/user");
+
+var dbURI ='mongodb://localhost/test';
+mongoose.connect(dbURI);
+
+var timeout = 15000;
+
 
 describe("User test mode", function () {
-    console.log("User test");
-    // var dbURI = 'mongodb://localhost/test';
-    // mongoose.connect(dbURI);
+    var name = "Carlos";
+    var lastname = "Pazmiño Peralta";
+    var username = "charlss90";
+    var password = "mypassword";
+    var email = "carlos.pazmino.developer@gmail.com";
 
-    // mongoose.connection.on('connected', function () {
-    //  console.log('Mongoose connected to ' + dbURI);
-    // });
-    // mongoose.connection.on('error',function (err) {
-    //  console.log('Mongoose connection error: ' + err);
-    // });
-    // mongoose.connection.on('disconnected', function () {
-    //  console.log('Mongoose disconnected');
-    // });
+    var newUser = {
+        name: name,
+        username: username,
+        lastname: lastname,
+        password: password,
+        email: email
+    };
+    var user;
 
-    // var mongoose = require('mongoose');
-    // it("save kitty", function () {
-    beforeEach(function(done) {
-        console.log("Fuck!!!!!!");
-        mongoose.connect('mongodb://localhost/test');
+    
+    it("Register and create user", function (done) {
+        user = new User(dbURI);
+        user.removeAll(function (err, doc) {
+            if(err) {
+                done();
+            } else {
+                user.register(newUser).then(function (_user) {
+                    try {
+                        assert.equal(_user.name, name);
+                        assert.equal(_user.lastname, lastname);
+                        assert.equal(_user.username, username);
+                        assert.equal(_user.email, email);
+                    } catch (ex) {
+                        throw ex;
+                    } finally {
+                        done();
+                    }
 
-        var Cat = mongoose.model('Cat', { name: String });
+                }).fail(function(err) {
+                    try {
+                        assert.notOk(true, "Error controlador");
+                    } catch (ex) {
+                        throw ex;
+                    } finally {
+                        done();
+                    }
+                });
+            }
+        });
+    });
 
-        var kitty = new Cat({ name: 'Zildjian' });
-        kitty.save(function (err) {
-            if (err) // ...
+    it("Login user", function (done) {
+        var user = new User();
+        user.login(username, password).then(function (token) {
+            try {
+                assert.isNotNull(token, "This not exist token");
+            } catch(ex) {
+                throw ex;
+                //console.log("Error: "+ex.message);
+            } finally {
+                done();
+            } 
+        }).fail(function (err) {
+            try {
                 console.log(err);
-            // expect(err).to.be.a(undefined);
-            console.log('meow');
-            done();
+                assert.isNull(err, "Trigger error when it doesn't exists");
+            } catch(ex) {
+                throw ex;
+            } finally {
+                done();
+            }
         });
     });
 
-    it("kitty save", function () {
-        var Cat = mongoose.model('Cat', { name: String });
-        Cat.find({name: "Zildjian"}, function(err, doc) {
-            console.log(err);
-            console.log(doc);
+    it("Login password doesn't maching", function(done) {
+        var user = new User();
+        user.login(username, "password").then(function (token) {
+            try {
+                throw new Error("Password doesn't matching, but login function");
+            } catch(ex) {
+                throw ex;
+            } finally {
+                done();
+            } 
+        }).fail(function (err) {
+            try {
+                var message = "User and password incorrect";
+                assert.equal(err.message, message, "Incorrect error");
+            } catch(ex) {
+                throw ex;
+            } finally {
+                done();
+            }
         });
     });
-    // });
 
 
-    // var name = "Carlos";
-    // var lastname = "Pazmiño Peralta";
-    // var username = "charlss90";
-    // var password = "mypassword";
-    // var email = "carlos.pazmino.developer@gmail.com";
-
-    // it("Constructor class", function () {
-    //     var user = new User(dbURI);
-    // });
-    // beforeEach(function (done) {
-    //     it("Create User", function () {
-    //         var debug = console.log;
-    //         var user = new User(dbURI);
-    //         user.register({
-    //             username: username,
-    //             password: password,
-    //             name: name,
-    //             lastname: lastname,
-    //             email: email
-    //         }, function (err) {
-    //             if (!err) {
-    //                 console.log("Register Success");
-    //             } else {
-    //                 console.log(err);
-    //             }
-    //             done();
-    //         });
-    //     });
-    // });
-    // beforeEach(function (done) {
-    //     it("Find User", function () {
-    //         var debug = console.log;
-    //         var user = new User(dbURI);
-    //         user.find({
-    //             username: username,
-    //         }, function (err, doc) {
-    //             console.log(doc);
-    //             if (!err) {
-    //                 console.log("Register Success");
-    //             } else {
-    //                 console.log(err);
-    //             }
-    //             done();
-    //         });
-    //     });
-    // });
-
+    
 
 });
 
