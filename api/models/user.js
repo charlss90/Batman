@@ -25,19 +25,7 @@ module.exports = Class.extend({
     openSessions: 5,
     duplicateKey: 11000,
 
-    userSchema: new mongoose.Schema({
-        name: {type:String, required: true},
-        lastname: {type:String, required: true},
-        username: {type: String, unique: true, lowercase: true},
-        password: {type:String, required: true},
-        email: {type:String, required:true},
-        createdOn: { type: Date, default: Date.now },
-        modifyOn: { type: Date, default: Date.now },
-        lastLogin: Date,
-        tokens: [
-            {value:String, date: Date}
-        ]
-    }),
+    userSchema: require("../schemes/user"),
 
     register: function (user) {
         var deferred = Q.defer();
@@ -108,6 +96,8 @@ module.exports = Class.extend({
         return deferred.promise;
     },
     init: function () {
+
+        //var User = mongoose.model(this.nameCollection);
         this.User = mongoose.model(this.nameCollection, this.userSchema);
     }
 });

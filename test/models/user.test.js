@@ -84,6 +84,40 @@ describe("User test mode", function () {
 
     });
 
+    it("Register another user", function (done) {
+        var anotherUser = new User();
+        var fulgen = {
+            name: "Fulgencio",
+            lastname: "Pancracio apolodoro",
+            username: "fulgen",
+            password: "fulgen",
+            email: "fulgen@gmail.com"
+        };
+
+        anotherUser.register(fulgen).then(function (_user) {
+            try {
+                assert.equal(_user.name, fulgen.name);
+                assert.equal(_user.lastname, fulgen.lastname);
+                assert.equal(_user.username, fulgen.username);
+                assert.equal(_user.email, fulgen.email);
+            } catch (ex) {
+                throw ex;
+            } finally {
+                done();
+            }
+
+        }).fail(function(err) {
+            try {
+                assert.notOk(true, "Error controlador");
+            } catch (ex) {
+                throw ex;
+            } finally {
+                done();
+            }
+        });
+
+    });
+
     it("Incomplete user", function (done) {
         user = new User();
 
