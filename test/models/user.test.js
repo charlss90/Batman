@@ -4,7 +4,7 @@ var should = require("chai").should;
 var assert = require("chai").assert;
 var mongoose = require("mongoose");
 var Bcrypt = require("bcrypt");
-var User = require("../../api/users/core/user");
+var User = require("../../api/models/user");
 
 var dbURI ='mongodb://localhost/test';
 mongoose.connect(dbURI);
@@ -30,7 +30,7 @@ describe("User test mode", function () {
 
     
     it("Register and create user", function (done) {
-        user = new User(dbURI);
+        user = new User();
         user.removeAll(function (err, doc) {
             if(err) {
                 done();
@@ -59,8 +59,59 @@ describe("User test mode", function () {
             }
         });
     });
+    
+    it("Register same user", function (done) {
+        user = new User();
 
-    it("Login user", function (done) {
+        user.register(newUser).then(function (_user) {
+            try {
+                throw new Errr("Doesn't not register");
+            } catch (ex) {
+                throw ex;
+            } finally {
+                done();
+            }
+
+        }).fail(function(err) {
+            try {
+                assert.isNotNull(err, "Error controlador");
+            } catch (ex) {
+                throw ex;
+            } finally {
+                done();
+            }
+        });
+
+    });
+
+    it("Incomplete user", function (done) {
+        user = new User();
+
+        delete newUser.email;
+
+        user.register(newUser).then(function (_user) {
+            try {
+                throw new Errr("Doesn't not register because there are missing values");
+            } catch (ex) {
+                throw ex;
+            } finally {
+                done();
+            }
+
+        }).fail(function(err) {
+            try {
+                assert.isNotNull(err, "Error controlador");
+            } catch (ex) {
+                throw ex;
+            } finally {
+                done();
+            }
+        });
+
+    });
+    
+
+    it("Sign in user", function (done) {
         var user = new User();
         user.login(username, password).then(function (token) {
             try {
@@ -104,9 +155,6 @@ describe("User test mode", function () {
             }
         });
     });
-
-
-    
 
 });
 

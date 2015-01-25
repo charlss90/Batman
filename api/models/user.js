@@ -1,4 +1,4 @@
-var Class = require("../../core/class");
+var Class = require("../core/class");
 var Q = require("q");
 var uuid = require("node-uuid");
 var mongoose = require("mongoose");
@@ -23,6 +23,7 @@ var cyphrePassword = function (password) {
 module.exports = Class.extend({
     nameCollection: "User",
     openSessions: 5,
+    duplicateKey: 11000,
 
     userSchema: new mongoose.Schema({
         name: {type:String, required: true},
@@ -47,9 +48,11 @@ module.exports = Class.extend({
             user.password = password;
             var newUser = new self.User(user);
             newUser.save(function (err, doc) {
-                if (err)
+                if (err) {
+                    if (err.code == self.duplicateKey)
+                        err.message = user.username + " user exists";
                     deferred.reject(err);
-                else
+                } else
                     deferred.resolve(doc);
             });
         }).fail(function(err) {
@@ -81,11 +84,12 @@ module.exports = Class.extend({
                                 user.tokens.splice(user.tokens.length-1, 1);
                             var timestamp = new Date().getTime();
                             user.lastLogin = timestamp;
-                            user.tokens.push({token: token, date: timestamp});
+                            user.tokens.push({value: token, date: timestamp});
                             user.save(function (err) {
                                 if (err)
                                     deferred.reject(err);
-                                deferred.resolve(token);
+                                else 
+                                    deferred.resolve(token);
                             });
                         } else {
                             deferred.reject({message: "User and password incorrect"});
