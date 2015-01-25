@@ -1,5 +1,6 @@
 var Class = require("../core/class");
 var User = require("./user");
+var Store = require("./store");
 var Q = require("q");
 var mongoose = require("mongoose");
 

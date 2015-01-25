@@ -1,11 +1,11 @@
 var mongoose = require("mongoose");
 
 module.exports = new mongoose.Schema({
-	name: {type: String, require: true, unique: true},
+	name: {type: String, require: true },
 	addresses: [
 		require("./address")
 	],
-	catalogs: [ {type:ObjectId, ref: "Catalog"} ],
+	catalogs: [ {type:"ObjectId", ref: "Catalog"} ],
 	valorations: [
 		require("./valoration")
 	],
