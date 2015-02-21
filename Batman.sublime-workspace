@@ -11,7 +11,7 @@
 			"file": "test/models/user.test.js",
 			"settings":
 			{
-				"buffer_size": 3131,
+				"buffer_size": 5299,
 				"line_ending": "Unix"
 			}
 		}
@@ -44,9 +44,7 @@
 	},
 	"expanded_folders":
 	[
-		"/home/chraz/Github/Batman",
-		"/home/chraz/Github/Batman/test",
-		"/home/chraz/Github/Batman/test/models"
+		"/home/chraz/Documentos/Github/Batman"
 	],
 	"file_history":
 	[
@@ -95,15 +93,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 3131,
+						"buffer_size": 5299,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								622,
-								622
+								0,
+								0
 							]
 						],
 						"settings":
