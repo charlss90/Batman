@@ -67,7 +67,7 @@ module.exports = Class.extend({
                 if (user) {
                     Bcrypt.compare(password, user.password, function (err, isValid) {
                         if (isValid) {
-                            var token = uuid.v1();
+                            var token = {token: uuid.v1(), date: new Date().getTime()};
                             if (user.tokens.length > self.openSessions)
                                 user.tokens.splice(user.tokens.length-1, 1);
                             var timestamp = new Date().getTime();

@@ -12,7 +12,7 @@ mongoose.connect(dbURI);
 var timeout = 15000;
 
 
-describe("User test mode", function () {
+describe("User test", function () {
     var name = "Carlos";
     var lastname = "Pazmiño Peralta";
     var username = "charlss90";
@@ -181,6 +181,29 @@ describe("User test mode", function () {
         }).fail(function (err) {
             try {
                 var message = "User and password incorrect";
+                assert.equal(err.message, message, "Incorrect error");
+            } catch(ex) {
+                throw ex;
+            } finally {
+                done();
+            }
+        });
+    });
+
+
+    it("Login user and password doesn't maching", function(done) {
+        var user = new User();
+        user.login("username", "password").then(function (token) {
+            try {
+                throw new Error("User and Password doesn't matching, but login function");
+            } catch(ex) {
+                throw ex;
+            } finally {
+                done();
+            } 
+        }).fail(function (err) {
+            try {
+                var message = "User doesn't exist's";
                 assert.equal(err.message, message, "Incorrect error");
             } catch(ex) {
                 throw ex;

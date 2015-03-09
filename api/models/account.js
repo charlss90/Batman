@@ -6,12 +6,12 @@ var mongoose = require("mongoose");
 
 
 module.exports = Class.extend({
-	nameCollection: "Account"
-	companySchema: require("../schemes/account"),
+	nameCollection: "Account",
+	accountSchema: require("../schemes/account"),
 
-	createAccount: function (name, nif) {
+	create: function (name, nif, user) {
 		var deferred = Q.defer();
-
+		var self = this;
 		var newAccount = new this.Account({
 			name: name,
 			nif: nif
@@ -19,10 +19,17 @@ module.exports = Class.extend({
 
 		newAccount.save(function (err, _account) {
 			if (err)
-				deferred.reject(err)
-			else
-				deferred.resolve(_account);
+				deferred.reject(err);
+			else {
+				self.addAdministrator(_account._id,user)
+				.then(function (userId) {
+					deferred.resolve(userId);
+				}).fail(function (err) {
+					deferred.reject(err);
+				});
+			}
 		});
+					
 
 		return deferred.promise;
 	},
@@ -30,14 +37,18 @@ module.exports = Class.extend({
 	/**
 	* Return id of user
 	**/
-	addAdministrator: function (idAccount, user) {
+	addAdministrator: function (accountId, user) {
 		var deferred = Q.defer();
 
-		this.Account.update({_id: idAccount}, function (err, _account) {
+		this.Account.update({_id: accountId}, function (err, _account) {
 			if (err) 
 				deferred.reject(err);
 			else if (_account) {
 				var newUser = new User();
+				if (user.accounts)
+					user.accounts.push(accountId);
+				else
+					user.accounts = [accountId];
 				newUser.register(user).then(function (_user) {
 					_account.administrators.push(_user._id);
 					_account.save(function (err) {
@@ -81,7 +92,33 @@ module.exports = Class.extend({
 		return deferred.promise;
 	},
 
+	addCatalog: function (idAccount, catalog) {
+		var deferred = Q.defer();
+
+		var newCatalog = new Catalog();
+		newCatalog.create(catalog)
+		.then(function (_catalog) {
+			this.Account.findByIdAndUpdate(
+				idAccount,
+				{$push: {catalogs: _catalog._id}},
+				{safe: true, upsert: true},
+				function (err, model) {
+					if (err)
+						deferred.reject(err);
+					else
+						deferred.resolve(_catalog);
+
+				}
+			);
+
+		}).fail(function (err) {
+			deferred.reject(err);
+		});
+
+		return deferred.promise;
+	},
+
 	init: function () {
-		this.Account = mongoose.model(this.nameCollection, this.userSchema);
+		this.Account = mongoose.model(this.nameCollection, this.accountSchema);
 	}
 });
